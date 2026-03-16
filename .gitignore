@@ -8,7 +8,7 @@ Makefile
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
-
+*.zip
 # Qt Creator 用户配置（含本机路径）
 *.pro.user
 *.pro.user.*
@@ -40,4 +40,3 @@ $RECYCLE.BIN/
 
 # macOS（协作者可能用 Mac）
 .DS_Store
-dist/
