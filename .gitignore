@@ -1,0 +1,42 @@
+# CMake 构建输出
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# Qt Creator 用户配置（含本机路径）
+*.pro.user
+*.pro.user.*
+CMakeLists.txt.user
+.qmake.stash
+.qmake.cache
+
+# Visual Studio / CLion / VS Code 本地配置
+.vs/
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+
+# 编译产物
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# Windows 系统文件
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS（协作者可能用 Mac）
+.DS_Store
