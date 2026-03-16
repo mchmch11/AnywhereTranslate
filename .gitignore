@@ -40,3 +40,4 @@ $RECYCLE.BIN/
 
 # macOS（协作者可能用 Mac）
 .DS_Store
+dist/

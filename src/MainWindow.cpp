@@ -22,9 +22,28 @@
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
+#include <QRegularExpression>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
+
+// 合并段落内的软换行（PDF/文档复制时产生的行尾断行）
+// 空行视为段落分隔符，保留为 \n\n；段落内的换行替换为空格
+static QString joinLines(const QString &text) {
+    const QStringList paragraphs = text.split(QRegularExpression(R"(\n[ \t]*\n)"));
+    QStringList out;
+    for (const QString &para : paragraphs) {
+        QStringList parts;
+        for (const QString &line : para.split('\n')) {
+            const QString t = line.trimmed();
+            if (!t.isEmpty())
+                parts << t;
+        }
+        if (!parts.isEmpty())
+            out << parts.join(' ');
+    }
+    return out.join("\n\n");
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -45,6 +64,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_clipboardDebounceTimer, &QTimer::timeout, this, &MainWindow::onDebounceTimeout);
     connect(m_hotkeyWatcher, &GlobalHotkeyWatcher::quickTranslateRequested,
             this, &MainWindow::onQuickTranslateRequested);
+
+    connect(m_popupWindow, &PopupWindow::engineChangeRequested, this, [this](int index) {
+        m_engineCombo->setCurrentIndex(index);
+        if (!m_sourceEdit->toPlainText().trimmed().isEmpty()) {
+            m_popupWindow->setLoading();
+            m_isBusy = false;
+            m_translateButton->setEnabled(true);
+            requestTranslate();
+        }
+    });
 
     connect(m_translator, &TranslatorService::translated, this, [this](const QString &result) {
         m_isBusy = false;
@@ -312,7 +341,7 @@ void MainWindow::onClipboardChanged() {
     }
 
     m_lastClipboardText = text;
-    m_sourceEdit->setPlainText(text);
+    m_sourceEdit->setPlainText(joinLines(text));
     m_statusLabel->setText("检测到剪贴板新文本，准备翻译...");
     m_clipboardDebounceTimer->start();
 }
@@ -330,12 +359,13 @@ void MainWindow::onQuickTranslateRequested(QPoint screenPos) {
         return;
     }
 
+    m_popupWindow->setCurrentEngine(m_engineCombo->currentIndex());
     m_popupWindow->showAt(screenPos);
     m_popupWindow->setLoading();
 
     if (!m_isBusy) {
         // 用剪贴板内容触发翻译（若自动监听未开启也能工作）
-        m_sourceEdit->setPlainText(text);
+        m_sourceEdit->setPlainText(joinLines(text));
         requestTranslate();
     }
     // 若正在翻译中，translated 信号触发时会自动更新已显示的气泡
